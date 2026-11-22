@@ -1,1 +1,830 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#162a42"><title>Deutsch Life 🇩🇪</title><style>body{margin:0;background:#f4f7fb;color:#172c45;font:16px -apple-system,BlinkMacSystemFont,sans-serif}main{max-width:680px;margin:auto;padding:22px}header{background:#172c45;color:white;padding:24px;border-radius:20px}h1{margin:0 0 8px}section{background:white;padding:20px;border-radius:18px;margin:18px 0;box-shadow:0 2px 12px #172c4510}button{border:0;background:#255caa;color:white;padding:12px 16px;border-radius:12px;margin:5px 4px 5px 0;font-size:15px}button.secondary{background:#e8eef7;color:#172c45}textarea{width:100%;box-sizing:border-box;min-height:95px;border:1px solid #ccd7e4;border-radius:12px;padding:12px;font-size:16px}li{margin:12px 0;line-height:1.6}.small{font-size:13px;color:#63748a}.phrase{border-bottom:1px solid #e7edf4;padding:10px 0}#status{font-weight:600;color:#276348}</style></head><body><main><header><h1>Deutsch Life 🇩🇪</h1><div>把每天说过的中文，变成真正用得上的德语</div></header><section><h2>🎙️ 记录今天的表达</h2><p class="small">点击开始后授权麦克风；浏览器必须保持打开。语音识别依赖设备支持，不会后台录音。</p><button id="start">开始录音转文字</button><button class="secondary" id="stop">停止</button><p id="status">准备就绪</p><textarea id="input" placeholder="输入中文，或使用语音转文字，例如：请给我一杯咖啡"></textarea><br><button id="save">保存这句话</button><button class="secondary" id="export">复制学习素材</button></section><section><h2>📒 我的日常表达 <span id="count"></span></h2><div id="entries"></div></section><section><h2>🇩🇪 德语朗读</h2><p class="small">输入德语句子，点击按钮朗读；可以先把中文表达复制到 ChatGPT 生成德语教程。</p><textarea id="german" placeholder="Ich hätte gern einen Kaffee, bitte."></textarea><br><button id="speak">正常朗读</button><button class="secondary" id="slow">慢速朗读</button></section><section><h2>📚 今日示例专题 · 咖啡店</h2><p><b>Ich hätte gern einen Kaffee, bitte.</b><br>我想要一杯咖啡，谢谢。</p><p><b>语法：</b>“ich hätte gern” 是礼貌表达“我想要……”，比 “ich will” 更自然。</p><p><b>拓展：</b>Zum Mitnehmen, bitte.（请打包带走。）</p><button onclick="say('Ich hätte gern einen Kaffee, bitte.',1)">🔊 听示例</button></section><p class="small">隐私：记录仅保存在当前浏览器本地，不会上传服务器。此版本尚未接入自动 AI 翻译、云端同步或定时推送；清理浏览器数据可能删除记录。</p></main><script>const $=id=>document.getElementById(id),key='deutsch_life_phrases';let items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}function render(){ $('count').textContent='('+items.length+')';$('entries').innerHTML='';if(!items.length)$('entries').textContent='暂无记录';items.slice().reverse().forEach((x,i)=>{let d=document.createElement('div');d.className='phrase';let t=document.createElement('div');t.textContent=x.text;let s=document.createElement('small');s.textContent=new Date(x.at).toLocaleString('zh-CN');let b=document.createElement('button');b.className='secondary';b.textContent='删除';b.onclick=()=>{items.splice(items.length-1-i,1);persist()};d.append(t,s,document.createElement('br'),b);$('entries').append(d)})}function persist(){localStorage.setItem(key,JSON.stringify(items));render()}$('save').onclick=()=>{let text=$('input').value.trim();if(!text)return;items.push({text,at:Date.now()});persist();$('input').value=''};let rec;let Speech=window.SpeechRecognition||window.webkitSpeechRecognition;$('start').onclick=()=>{if(!Speech){$('status').textContent='此浏览器不支持语音识别，请手动输入中文';return}try{rec=new Speech();rec.lang='zh-CN';rec.continuous=true;rec.interimResults=false;rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)$('input').value+=e.results[i][0].transcript+'。'};rec.onerror=e=>$('status').textContent='语音识别错误：'+e.error;rec.onend=()=>$('status').textContent='录音已停止';rec.start();$('status').textContent='正在听写，请保持网页打开'}catch(e){$('status').textContent='无法启动录音：'+e.message}};$('stop').onclick=()=>{if(rec)rec.stop()};function say(t,rate){if(!('speechSynthesis'in window))return alert('设备不支持朗读');speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='de-DE';u.rate=rate;speechSynthesis.speak(u)}$('speak').onclick=()=>say($('german').value,1);$('slow').onclick=()=>say($('german').value,.75);$('export').onclick=async()=>{let prompt='请把以下中文日常表达整理为德语生活专题课程：自然德语翻译、中文语法讲解、高频词汇、拓展表达、3道练习题。\n'+items.map(x=>x.text).join('\n');try{await navigator.clipboard.writeText(prompt);alert('已复制，可粘贴到 ChatGPT')}catch(e){prompt&&window.prompt('复制以下内容',prompt)}};render();</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#172c45">
+<meta name="description" content="记录中文日常，用自然德语逐句练习。">
+<title>Deutsch Life · 日常德语</title>
+<style>
+:root{color-scheme:light;--ink:#172c45;--muted:#52657b;--paper:#f4f7fb;--line:#d6e1ed;--blue:#24579d;--pale:#e9f1fd;--good:#20604d;--red:#a42b43}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.6 system-ui,sans-serif}
+[hidden]{display:none!important}
+a{color:var(--blue)}
+button,input,textarea{font:inherit}
+button,.button{min-height:44px;border:1px solid transparent;border-radius:12px;padding:.5rem .9rem;background:var(--blue);color:white;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;font-weight:650}
+button.secondary,.button.secondary{color:var(--ink);background:var(--pale)}
+button.quiet{color:var(--blue);background:white;border-color:var(--line)}
+button:disabled{opacity:.58;cursor:default}
+:focus-visible{outline:3px solid #d06808;outline-offset:3px}
+header{background:var(--ink);color:white}
+.frame{width:min(100% - 2rem,45rem);margin-inline:auto}
+.brand{display:flex;align-items:center;gap:.65rem;padding:.75rem 0;color:white;font-weight:750;text-decoration:none;letter-spacing:.01em}
+.mark{width:24px;height:17px;border-radius:4px;background:linear-gradient(#151b22 33.33%,#e94e54 33.33% 66.66%,#ffd274 66.66%);box-shadow:0 0 0 1px #ffffff55}
+main{padding:1.3rem 0 calc(6.5rem + env(safe-area-inset-bottom));overflow-wrap:anywhere}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(1.75rem,6vw,2.5rem);line-height:1.22;letter-spacing:-.04em}
+h2{font-size:1.2rem;line-height:1.35}
+h3{font-size:1.075rem}
+.intro{margin-bottom:1.15rem}
+.intro p{margin-top:.4rem}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:1rem;margin:0 0 .8rem}
+.capture{background:var(--ink);color:white;text-align:center;padding:1.25rem 1rem}
+.capture p{margin-top:.45rem;color:#dfeaff}
+.record{width:100%;min-height:64px;margin-top:.85rem;background:white;color:var(--ink);font-size:1.15rem}
+.record[aria-pressed=true]{background:#ffe4e9;color:#7f1731}
+.record svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.stack>*+*{margin-top:.6rem}
+.actions{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.field-label{display:block;font-weight:700}
+textarea,input[type=text]{width:100%;border:1px solid #9fb2ca;border-radius:12px;background:white;color:var(--ink);padding:.65rem .75rem}
+textarea{min-height:8rem;resize:vertical}
+.text-source{color:var(--muted);white-space:pre-wrap}
+.de{font-size:1.175rem;font-weight:680;color:var(--ink)}
+.badge{display:inline-block;font-size:.875rem;color:var(--good);background:#e6f4ee;border-radius:9px;padding:.12rem .55rem}
+.notice{color:var(--good)}
+.error{color:var(--red)}
+summary{color:var(--blue);font-weight:650;cursor:pointer;padding:.4rem 0}
+details p{margin:.4rem 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:.65rem}
+.category{display:flex;flex-direction:column;gap:.2rem;min-height:85px;padding:.75rem 1rem;text-decoration:none;margin:0;color:var(--ink)}
+.category strong{color:var(--blue)}
+nav{position:fixed;inset:auto 0 0;z-index:2;background:#ffffff;border-top:1px solid var(--line);padding:.35rem 0 calc(.35rem + env(safe-area-inset-bottom))}
+nav .frame{display:grid;grid-template-columns:repeat(4,1fr);gap:.25rem}
+nav a{display:grid;place-items:center;min-height:47px;border-radius:12px;color:var(--muted);font-size:.925rem;text-align:center;text-decoration:none;font-weight:650}
+nav a[aria-current=page]{color:var(--blue);background:var(--pale)}
+.history{list-style:none;margin:0;padding:0}
+.history li{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.65rem 0}
+.history li+li{border-top:1px solid var(--line)}
+.history li a{flex:1;min-width:10rem}
+#feedback{min-height:1.4em;margin-top:.65rem}
+</style>
+</head>
+<body>
+<header><div class="frame"><a class="brand" href="#home"><span class="mark" aria-hidden="true"></span>Deutsch Life</a></div></header>
+<main class="frame">
+<section id="home" data-page>
+  <div class="intro"><h1 tabindex="-1">今天，说点什么？</h1><p class="muted">把你每天说的中文，变成用得上的德语。</p></div>
+  <div class="card capture">
+    <h2>中文语音转文字</h2>
+    <button class="record" id="record" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
+      <span id="record-label">开始录音</span>
+    </button>
+    <p class="small" id="record-status" role="status">点击开始，再点一次结束。</p>
+    <p class="small" id="interim" hidden></p>
+  </div>
+  <form class="card stack" id="transcript-form">
+    <label for="transcript" class="field-label">中文原文</label>
+    <textarea id="transcript" placeholder="说完后可在这里修改，也可以直接输入中文。" required></textarea>
+    <p class="small muted">保留听写标点，并尝试补全。开始学习前可以手动分行或修正断句。</p>
+    <div class="actions">
+      <button id="process" type="submit">逐句学德语</button>
+      <button class="quiet" id="sample" type="button">试用示例</button>
+    </div>
+  </form>
+  <details class="card small muted">
+    <summary>听写、翻译和隐私</summary>
+    <p>听写和朗读使用浏览器和设备功能。浏览器可能把音频交给它的语音服务处理。本站不保存录音文件。</p>
+    <p>内置口语、标点和场景匹配在本机处理。在线机器翻译仅在你点击后发送待翻译的中文。自动的 AI 润色、上下文语法讲解和语义分类需要另接 AI 后端，目前未启用。</p>
+    <p>草稿、历史和收藏保存在这个浏览器中。清除网站数据会移除本地记录。</p>
+  </details>
+</section>
+<section id="learn" data-page hidden>
+  <div class="intro"><h1 tabindex="-1">逐句学德语</h1><p id="lesson-summary" class="muted"></p></div>
+  <div id="translation-options" class="card stack" hidden>
+    <h2>补全德语译文</h2>
+    <p class="muted small">仅将待翻译的中文发给 MyMemory。免费额度有限，译文可编辑。请先移除敏感内容。</p>
+    <div class="actions">
+      <button type="button" id="translate">使用免费在线翻译</button>
+    </div>
+    <p id="translation-status" class="small" role="status" hidden></p>
+  </div>
+  <div id="lesson"></div>
+</section>
+<section id="scenes" data-page hidden>
+  <div class="intro"><h1 tabindex="-1" id="scene-title">生活场景</h1><p class="muted" id="scene-description">从记录里匹配关键词和常用短语，按场景练习。</p></div>
+  <div id="scene-content"></div>
+</section>
+<section id="review" data-page hidden>
+  <div class="intro"><h1 tabindex="-1">我的复习</h1><p class="muted">重听收藏的表达，打开之前的记录。</p></div>
+  <div id="favorites"></div>
+  <div class="card stack"><h2>历史记录</h2><div id="history"></div></div>
+</section>
+<p id="feedback" class="small notice" role="status"></p>
+</main>
+<nav aria-label="主导航"><div class="frame">
+  <a href="#home" data-nav="home">录音</a>
+  <a href="#learn" data-nav="learn">逐句学习</a>
+  <a href="#scenes" data-nav="scenes">生活场景</a>
+  <a href="#review" data-nav="review">我的复习</a>
+</div></nav>
+<script>
+'use strict';
+
+const scenes = {
+  dining: { name: '餐厅与咖啡', examples: '点单、打包、结账' },
+  shopping: { name: '购物', examples: '试穿、问价、付款' },
+  travel: { name: '交通与旅行', examples: '问路、搭车、买票' },
+  work: { name: '工作与学习', examples: '开会、发邮件、交作业' },
+  social: { name: '社交', examples: '问候、道谢、约见' },
+  home: { name: '居家', examples: '开窗、打扫、关灯' },
+  health: { name: '健康', examples: '看医生、买药、描述症状' },
+  other: { name: '其他日常', examples: '还未匹配到具体场景的表达' }
+};
+
+// Each row is [Chinese matches, German, optional grammar note, also a phrase match].
+const phrases = {
+  dining: [
+    ['请给我一杯咖啡|我想要一杯咖啡(谢谢)?|我要一杯咖啡|来一杯咖啡|一杯咖啡谢谢', 'Ich hätte gern einen Kaffee, bitte.', 'Ich hätte gern … 是礼貌的点单句式。'],
+    ['请打包(带走)?|打包带走|我要带走', 'Zum Mitnehmen, bitte.', 'zum Mitnehmen 表示「带走」。', true],
+    ['买单(谢谢)?|请买单|请结账|结账(谢谢)?|麻烦结账', 'Die Rechnung, bitte.', 'Rechnung 在餐厅里指账单。', true],
+    ['可以看(一下|看)?菜单吗|请给我(看一下)?菜单', 'Kann ich bitte die Speisekarte sehen?'],
+    ['我可以刷卡吗|能刷卡吗|可以刷卡吗|可以用卡付款吗', 'Kann ich mit Karte zahlen?', 'mit Karte 表示「用银行卡」。'],
+    ['我在这(里)?吃|在这里吃|堂食', 'Zum Hieressen, bitte.'],
+    ['给我一杯水|请给我一杯水|我想(要|喝)一杯水', 'Ich hätte gern ein Glas Wasser, bitte.'],
+    ['有素食吗|有什么素食吗|你们有素食吗', 'Haben Sie auch vegetarische Gerichte?']
+  ],
+  shopping: [
+    ['这(个|件)多少钱|多少钱|这个卖多少钱', 'Wie viel kostet das?', '询问价格可以用 Wie viel kostet …?', true],
+    ['我可以试穿(一下|这件)?吗|可以试穿吗|能试穿吗', 'Kann ich das anprobieren?', 'anprobieren 用于试穿衣服。'],
+    ['我想(用)?现金付款|我付现金|我用现金', 'Ich zahle bar.'],
+    ['有大一点的(吗|尺码吗)|有更大的尺码吗', 'Haben Sie das eine Nummer größer?'],
+    ['有小一点的(吗|尺码吗)|有更小的尺码吗', 'Haben Sie das eine Nummer kleiner?'],
+    ['我想退货|我要退货', 'Ich möchte das zurückgeben.']
+  ],
+  travel: [
+    ['请问火车站在哪(里|儿)?|火车站在哪(里|儿)?|火车站怎么走', 'Wo ist der Bahnhof?', '问地点可以用 Wo ist …?'],
+    ['请问地铁站在哪(里|儿)?|地铁站在哪(里|儿)?', 'Wo ist die U-Bahn-Station?'],
+    ['下一班(火车|车)什么时候到', 'Wann kommt der nächste Zug?'],
+    ['我想买(一张)?票|我要买(一张)?票', 'Ich hätte gern eine Fahrkarte.'],
+    ['请问厕所在哪(里|儿)?|厕所在哪(里|儿)?|洗手间在哪(里|儿)?', 'Wo ist die Toilette?'],
+    ['我迷路了', 'Ich habe mich verlaufen.'],
+    ['我怎么去市中心|去市中心怎么走', 'Wie komme ich in die Innenstadt?'],
+    ['这趟车去机场吗|这班车去机场吗', 'Fährt der Bus zum Flughafen?']
+  ],
+  work: [
+    ['我们几点开会|会议几点开始', 'Um wie viel Uhr fängt das Meeting an?'],
+    ['我(给你|会给你)发(一封|个)?邮件', 'Ich schicke dir eine E-Mail.', 'dir 是熟人之间用的「给你」。'],
+    ['我今天有(个|一个)?会议', 'Ich habe heute ein Meeting.'],
+    ['我马上到|我快到了', 'Ich bin gleich da.'],
+    ['我今天在家办公|我今天居家办公', 'Ich arbeite heute im Homeoffice.', 'im Homeoffice arbeiten 是常见的居家办公表达。', true],
+    ['我明天交作业|我明天会交作业', 'Ich gebe die Hausaufgaben morgen ab.']
+  ],
+  social: [
+    ['早上好', 'Guten Morgen!', '', true],
+    ['你好|嗨', 'Hallo!', '', true],
+    ['谢谢(你|您)?|非常感谢|太感谢了', 'Vielen Dank!', '', true],
+    ['不客气', 'Gerne!', '', true],
+    ['明天见', 'Bis morgen!', '', true],
+    ['你最近怎么样|你好吗|最近怎么样', 'Wie geht’s dir?'],
+    ['你明天有空吗|明天有空吗', 'Hast du morgen Zeit?'],
+    ['很高兴认识你', 'Freut mich, dich kennenzulernen.'],
+    ['打扰一下|不好意思', 'Entschuldigung!', '', true],
+    ['你叫什么(名字)?', 'Wie heißt du?'],
+    ['你能帮我(一下)?吗|能帮我(一下)?吗', 'Kannst du mir kurz helfen?']
+  ],
+  home: [
+    ['请(把)?窗户打开|请开窗|帮我开(一下)?窗|能打开窗户吗', 'Kannst du bitte das Fenster aufmachen?'],
+    ['请(把)?灯关掉|请关灯|帮我关(一下)?灯', 'Mach bitte das Licht aus.'],
+    ['我去倒垃圾|我去扔垃圾', 'Ich bringe den Müll raus.', '', true],
+    ['我在做饭|我正在做饭', 'Ich koche gerade.'],
+    ['我在洗衣服|我正在洗衣服', 'Ich wasche gerade Wäsche.']
+  ],
+  health: [
+    ['我想预约(看医生)?|我想约个医生|我想挂号', 'Ich würde gern einen Termin vereinbaren.'],
+    ['我头疼|我头痛', 'Ich habe Kopfschmerzen.'],
+    ['我发烧了|我发烧', 'Ich habe Fieber.'],
+    ['请问药店在哪(里|儿)?|药店在哪(里|儿)?', 'Wo ist die nächste Apotheke?'],
+    ['我不舒服|我身体不舒服', 'Mir geht’s nicht gut.']
+  ]
+};
+
+const vocabulary = {
+  dining: [['咖啡','der Kaffee'],['茶','der Tee'],['菜单','die Speisekarte'],['账单','die Rechnung'],['点餐|点菜','bestellen'],['餐厅|饭店','das Restaurant'],['牛奶','die Milch'],['啤酒','das Bier'],['素食','vegetarisch']],
+  shopping: [['超市','der Supermarkt'],['价格','der Preis'],['打折|折扣','der Rabatt'],['试穿','anprobieren'],['刷卡|银行卡','mit Karte zahlen'],['现金','das Bargeld'],['尺码','die Größe'],['退货','etwas zurückgeben'],['付款','bezahlen']],
+  travel: [['火车站','der Bahnhof'],['火车','der Zug'],['地铁','die U-Bahn'],['公交|公共汽车','der Bus'],['站台','der Bahnsteig'],['车票','die Fahrkarte'],['机场','der Flughafen'],['换乘','umsteigen'],['厕所|洗手间','die Toilette']],
+  work: [['会议','das Meeting'],['开会','ein Meeting haben'],['邮件','die E-Mail'],['居家办公|在家办公','im Homeoffice arbeiten'],['作业','die Hausaufgaben'],['下班','Feierabend machen'],['同事','der Kollege / die Kollegin'],['项目','das Projekt']],
+  social: [['朋友','der Freund / die Freundin'],['生日','der Geburtstag'],['周末','das Wochenende'],['有空','Zeit haben'],['约见','sich verabreden'],['见面','sich treffen']],
+  home: [['窗户|开窗','das Fenster'],['关灯','das Licht ausmachen'],['倒垃圾|扔垃圾','den Müll rausbringen'],['做饭','kochen'],['洗衣服','Wäsche waschen'],['打扫','putzen'],['房间','das Zimmer']],
+  health: [['药店','die Apotheke'],['医生','der Arzt / die Ärztin'],['预约|挂号','einen Termin vereinbaren'],['头疼|头痛','die Kopfschmerzen'],['发烧','das Fieber'],['感冒','die Erkältung'],['咳嗽','der Husten'],['医院','das Krankenhaus']]
+};
+
+const entries = Object.entries(phrases).flatMap(([scene, rows]) => rows.map(([aliases, de, note, extract]) => {
+  return { scene, de, note, extract, exact: new RegExp('^(?:' + aliases + ')$'), partial: new RegExp(aliases) };
+}));
+const words = Object.entries(vocabulary).flatMap(([scene, rows]) => rows.map(([aliases, de]) => ({
+  scene, de, match: new RegExp(aliases)
+})));
+
+const $ = id => document.getElementById(id);
+const storageKey = 'deutsch_life_v2';
+const legacyKey = 'deutsch_life_phrases';
+const transcript = $('transcript');
+const sample = '请给我一杯咖啡，打包带走。请问火车站在哪里？会议几点开始？明天见！';
+
+function read(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+}
+
+function uid() {
+  return globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+const saved = read(storageKey);
+const legacy = read(legacyKey);
+const state = saved && Array.isArray(saved.records) ? saved : {
+  records: Array.isArray(legacy) ? legacy.filter(entry => typeof entry?.text === 'string' && entry.text.trim())
+    .map(entry => makeRecord(entry.text, entry.at)) : [],
+  favorites: [],
+  active: null,
+  draft: ''
+};
+state.favorites ||= [];
+state.active ||= state.records.at(-1)?.id || null;
+transcript.value = state.draft || '';
+
+function announce(text, error = false) {
+  $('feedback').className = 'small ' + (error ? 'error' : 'notice');
+  $('feedback').textContent = text;
+}
+
+function persist() {
+  try { localStorage.setItem(storageKey, JSON.stringify(state)); return true; }
+  catch { announce('浏览器无法写入本地存储，本次更改只在当前页面保留。', true); return false; }
+}
+
+function clean(text) {
+  return text.replace(/[ \t\u3000]+/g, ' ')
+    .replace(/(\p{Script=Han}) +(?=\p{Script=Han})/gu, '$1')
+    .replace(/([！？。，、；：!?])\1+/g, '$1').trim();
+}
+
+function punctuation(text, inferPauses = false) {
+  return clean(text)
+    .replace(/[,!?;:]/g, (mark, index, source) => {
+      if (/\d/.test(source[index - 1] || '') && /\d/.test(source[index + 1] || '')) return mark;
+      return { ',':'，', '!':'！', '?':'？', ';':'；', ':':'：' }[mark];
+    })
+    .split(/\r?\n/g).map(rawLine => {
+      const line = rawLine.trim();
+      const prepared = inferPauses
+        ? line.replace(/(\p{Script=Han})[， ]*(但是|然后|所以|不过|而且|接着)(?=\p{Script=Han})/gu, '$1，$2')
+        : line;
+      if (!prepared || /[。！？.!?…；;][”’」』）"]?$/.test(prepared)) return prepared;
+      const body = prepared.replace(/[，、：,：:]$/, '');
+      if (!body) return prepared;
+      const question = /(?:吗|么|嘛)$|^(?:请问|能不能|可不可以|有没有|是不是|要不要|为什么|怎么|哪里|哪儿|什么时候|几点|多少钱)|(?:谁|什么|多少|几点|哪里|哪儿|怎么样|怎么走|什么时候)(?:呢|啊|呀)?$/.test(body.split('，').at(-1));
+      return body + (question ? '？' : '。');
+    }).join('\n');
+}
+
+function sentenceParts(text) {
+  const sentences = text.split(/\r?\n+/).flatMap(line => {
+    const parts = [];
+    let start = 0;
+    for (let i = 0; i < line.length; i++) {
+      const mark = line[i];
+      if (mark === '.' && /[a-z0-9]/i.test(line[i + 1] || '')) continue;
+      if (/[?？]/.test(mark) && /[0-9]/.test(line[i + 1] || '') && /[0-9]/.test(line[i - 1] || '')) continue;
+      if (!/[。！？.!?…；;]/.test(mark)) continue;
+      while (i + 1 < line.length && /[。！？.!?…；;”’」』）"]/.test(line[i + 1])) i++;
+      parts.push(line.slice(start, i + 1));
+      start = i + 1;
+    }
+    parts.push(line.slice(start));
+    return parts;
+  });
+  return sentences.map(part => part.trim()).filter(part => /[\p{L}\p{N}]/u.test(part));
+}
+
+function phraseKey(item) {
+  return JSON.stringify([item.scene, item.de.toLocaleLowerCase('de'), item.zh]);
+}
+
+function unique(items, key) {
+  const seen = new Set();
+  return items.filter(item => {
+    const id = key(item);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+function analyze(zh) {
+  const key = zh.replace(/[\p{P}\p{Z}]/gu, '');
+  const exact = entries.find(entry => entry.exact.test(key));
+  const matched = words.flatMap(entry => {
+    const zhMatch = key.match(entry.match)?.[0];
+    return zhMatch ? [{ zh: zhMatch, de: entry.de, scene: entry.scene }] : [];
+  });
+  const clauseMatches = zh.split(/[，、,；;]/).map(clause => {
+    const normalized = clause.replace(/[\p{P}\p{Z}]/gu, '');
+    return entries.find(entry => entry.exact.test(normalized));
+  });
+  for (const entry of entries) {
+    if (entry !== exact && !clauseMatches.includes(entry) && !entry.extract) continue;
+    const zhMatch = key.match(entry.partial)?.[0];
+    if (zhMatch) matched.push({ zh: zhMatch, de: entry.de, scene: entry.scene });
+  }
+  const combined = !exact && clauseMatches.length > 1 && clauseMatches.every(Boolean) ? clauseMatches : [];
+  const german = exact?.de || combined.map(entry => entry.de).join(' ');
+  const note = exact?.note || combined.map(entry => entry.note).filter(Boolean).join(' ');
+  return { zh, de: german, source: german ? 'built-in' : '', note, terms: unique(matched, phraseKey) };
+}
+
+function makeRecord(text, at = Date.now()) {
+  return { id: uid(), text, at, sentences: sentenceParts(text).map(analyze) };
+}
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recordButton = $('record');
+let session = null;
+
+function setRecording(mode, message) {
+  recordButton.dataset.mode = mode;
+  recordButton.disabled = mode === 'stopping' || !SpeechRecognition;
+  recordButton.setAttribute('aria-pressed', String(mode === 'listening' || mode === 'stopping'));
+  $('record-label').textContent = { ready:'开始录音', listening:'结束录音', stopping:'正在结束…', unavailable:'语音听写不可用' }[mode];
+  $('record-status').textContent = message;
+  $('process').disabled = !!session;
+  $('sample').disabled = !!session;
+  transcript.readOnly = !!session;
+}
+
+function saveDraft(value) {
+  transcript.value = value;
+  state.draft = value;
+  persist();
+}
+
+function joinSpeech(chunks) {
+  let text = '';
+  for (const chunk of chunks) {
+    const next = clean(chunk.text);
+    if (!next) continue;
+    let separator = /[A-Za-z0-9]$/.test(text) && /^[A-Za-z0-9]/.test(next) ? ' ' : '';
+    if (text && !/[。！？.!?…；;，,、：:]$/.test(text) && !/^[。！？.!?…；;，,、：:]/.test(next)) {
+      const previous = text.split(/[。！？.!?…；;，,、]/).at(-1);
+      const fullPhrase = entries.some(entry => entry.exact.test(previous));
+      if (fullPhrase || /[吗么嘛]$/.test(previous) || chunk.pause >= 1600) separator = '\n';
+      else if (chunk.pause >= 950) separator = '，';
+    }
+    text += separator + next;
+  }
+  return punctuation(text, true).replace(/\n/g, '');
+}
+
+function speechErrors(error) {
+  return {
+    'not-allowed':'麦克风或听写权限未开启。你可以修改浏览器权限，或直接输入中文。',
+    'service-not-allowed':'此设备无法使用浏览器的听写服务。可以用中文键盘自带的听写。',
+    'audio-capture':'找不到可用的麦克风。可以直接输入中文。',
+    'network':'浏览器听写服务暂时无法连接。请检查网络后重试。',
+    'no-speech':'没有继续听到语音。请再试一次，或直接输入中文。',
+    'language-not-supported':'当前听写服务不支持普通话。可以用中文键盘自带的听写。'
+  }[error] || '听写已中断，可以重试或直接输入中文。';
+}
+
+function startRecording() {
+  if (!SpeechRecognition || session) return;
+  window.speechSynthesis?.cancel();
+  const recognition = new SpeechRecognition();
+  const current = { recognition, base: transcript.value.trimEnd(), chunks: [], lastFinal: 0, problem: '', timer: null };
+  session = current;
+  recognition.lang = 'zh-CN';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  const finish = () => {
+    if (session !== current) return;
+    clearTimeout(current.timer);
+    session = null;
+    $('interim').hidden = true;
+    setRecording('ready', current.problem || (current.chunks.length
+      ? '听写已结束，可以校对文字和标点。'
+      : '听写已结束，未收到文字。可以重试或直接输入中文。'));
+  };
+  recognition.onstart = () => {
+    if (session === current && recordButton.dataset.mode === 'listening') {
+      $('record-status').textContent = '正在听写，请保持页面打开。';
+    }
+  };
+  recognition.onresult = event => {
+    if (session !== current) return;
+    const pending = [];
+    const now = Date.now();
+    let changed = false;
+    for (let index = event.resultIndex; index < event.results.length; index++) {
+      const result = event.results[index];
+      const text = result[0].transcript;
+      if (!result.isFinal) pending.push(text);
+      else if (!current.chunks[index]) {
+        current.chunks[index] = { text, pause: current.lastFinal ? now - current.lastFinal : 0 };
+        current.lastFinal = now;
+        changed = true;
+      }
+    }
+    if (changed) {
+      const recognized = joinSpeech(current.chunks.filter(Boolean));
+      if (recognized) saveDraft([current.base, recognized].filter(Boolean).join('\n'));
+    }
+    $('interim').textContent = pending.join('');
+    $('interim').hidden = !pending.length;
+  };
+  recognition.onerror = event => {
+    if (session !== current) return;
+    current.problem = speechErrors(event.error);
+    finish();
+  };
+  recognition.onend = finish;
+  setRecording('listening', '正在启动听写…');
+  try { recognition.start(); }
+  catch { current.problem = speechErrors(); finish(); }
+}
+
+function stopRecording() {
+  if (!session || recordButton.dataset.mode === 'stopping') return;
+  const { recognition } = session;
+  setRecording('stopping', '正在完成最后一段听写…');
+  session.timer = setTimeout(() => {
+    try { recognition.abort(); } catch {}
+    recognition.onend();
+  }, 3500);
+  try { recognition.stop(); }
+  catch { recognition.onend(); }
+}
+
+recordButton.addEventListener('click', () => session ? stopRecording() : startRecording());
+if (!SpeechRecognition) setRecording('unavailable', '此浏览器未提供听写。可用中文键盘的麦克风，或直接输入中文。');
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopRecording(); });
+
+transcript.addEventListener('input', () => {
+  state.draft = transcript.value;
+  persist();
+});
+$('sample').addEventListener('click', () => {
+  if (transcript.value.trim() && !window.confirm('用示例替换当前草稿？')) return;
+  saveDraft(sample);
+  transcript.focus();
+});
+$('transcript-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (session) return;
+  const text = punctuation(transcript.value, true);
+  const record = makeRecord(text);
+  if (!record.sentences.length) {
+    announce('请先输入或听写一句话。', true);
+    return;
+  }
+  state.records.push(record);
+  state.active = record.id;
+  state.draft = '';
+  transcript.value = '';
+  location.hash = 'learn';
+  persist();
+});
+
+function create(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+
+function button(label, action, className = 'quiet') {
+  const node = create('button', label, className);
+  node.type = 'button';
+  node.addEventListener('click', action);
+  return node;
+}
+
+function link(label, hash, className) {
+  const node = create('a', label, className);
+  node.href = '#' + hash;
+  return node;
+}
+
+function say(text, rate) {
+  if (!text) return;
+  if (session) {
+    announce('请先结束录音，再播放德语。', true);
+    return;
+  }
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    announce('此浏览器不支持德语朗读。', true);
+    return;
+  }
+  const speech = window.speechSynthesis;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'de-DE';
+  utterance.rate = rate;
+  const voices = speech.getVoices();
+  const voice = voices.find(v => /^de[-_]DE$/i.test(v.lang)) || voices.find(v => /^de\b/i.test(v.lang));
+  if (voice) utterance.voice = voice;
+  utterance.onerror = event => {
+    if (!['canceled', 'interrupted'].includes(event.error)) announce('无法播放德语，请检查设备的语音设置。', true);
+  };
+  speech.cancel();
+  speech.speak(utterance);
+}
+
+function playback(getText) {
+  const actions = create('div', undefined, 'actions');
+  actions.append(button('听德语', () => say(getText(), 1)), button('慢速朗读', () => say(getText(), .75)));
+  return actions;
+}
+
+const getRecord = () => state.records.find(record => record.id === state.active);
+const sources = { 'built-in':'内置日常口语', 'machine':'在线机器翻译', 'manual':'手动编辑' };
+
+function favorite(item, control) {
+  const index = state.favorites.findIndex(savedItem => phraseKey(savedItem) === phraseKey(item));
+  if (index >= 0) state.favorites.splice(index, 1);
+  else state.favorites.push(item);
+  if (persist()) announce(index >= 0 ? '已取消收藏。' : '已加入我的复习。');
+  if (location.hash === '#review') {
+    const root = $('favorites');
+    renderReview();
+    root.querySelector('button')?.focus();
+    return;
+  }
+  control.textContent = index >= 0 ? '收藏' : '取消收藏';
+  control.setAttribute('aria-pressed', String(index < 0));
+}
+
+function favoriteButton(getItem, available = true) {
+  const control = button('收藏', () => favorite(getItem(), control));
+  const update = () => {
+    const item = getItem();
+    const added = !!item.de && state.favorites.some(savedItem => phraseKey(savedItem) === phraseKey(item));
+    control.textContent = added ? '取消收藏' : '收藏';
+    control.disabled = !item.de || !available;
+    control.setAttribute('aria-pressed', String(added));
+  };
+  update();
+  return { control, update };
+}
+
+function sentenceCard(sentence, index) {
+  const card = create('article', undefined, 'card stack');
+  card.append(create('h2', sentence.zh, 'text-source'));
+  const badge = create('span', sources[sentence.source] || '待翻译', 'badge');
+  card.append(badge);
+  const editor = create('input', undefined, 'de');
+  editor.type = 'text';
+  editor.id = 'de-' + index;
+  editor.lang = 'de';
+  editor.value = sentence.de;
+  editor.placeholder = '德语译文';
+  const label = create('label', '德语译文', 'field-label small');
+  label.htmlFor = editor.id;
+  card.append(label, editor);
+  const note = create('p', sentence.note || '', 'small muted');
+  note.hidden = !sentence.note;
+  card.append(note);
+  const actions = playback(() => editor.value.trim());
+  const getItem = () => ({
+    zh: sentence.zh, de: editor.value.trim(), scene: sentence.terms[0]?.scene || 'other'
+  });
+  const { control, update } = favoriteButton(getItem);
+  actions.append(control);
+  const refresh = () => {
+    actions.querySelectorAll('button').forEach(action => { action.disabled = !editor.value.trim(); });
+    update();
+  };
+  refresh();
+  editor.addEventListener('input', () => {
+    sentence.de = editor.value.trim();
+    sentence.source = sentence.de ? 'manual' : '';
+    sentence.note = '';
+    note.hidden = true;
+    badge.textContent = sources[sentence.source] || '待翻译';
+    refresh();
+    translationOptions(getRecord());
+    persist();
+  });
+  card.append(actions);
+  return card;
+}
+
+const translations = new Map();
+let copyStatusTimer;
+
+function translationOptions(record) {
+  const pending = record?.sentences.filter(sentence => !sentence.de).length || 0;
+  const run = record && translations.get(record.id);
+  $('translation-options').hidden = !pending && !run;
+  $('translate').disabled = !!run?.busy || !pending;
+  $('translation-status').textContent = run?.message || '';
+  $('translation-status').hidden = !run?.message;
+  $('translation-status').className = run?.error ? 'small error' : 'small notice';
+  return pending;
+}
+
+function renderLesson() {
+  const root = $('lesson');
+  root.replaceChildren();
+  const record = getRecord();
+  translationOptions(record);
+  if (!record) {
+    $('lesson-summary').textContent = '从录音或一段中文开始。';
+    const card = create('div', undefined, 'card stack');
+    card.append(create('p', '处理过的句子会显示在这里。'), link('去录音或输入', 'home', 'button'));
+    root.append(card);
+    return;
+  }
+  $('lesson-summary').textContent = record.sentences.length + ' 句 · ' + new Date(record.at).toLocaleDateString('zh-CN');
+  root.append(...record.sentences.map(sentenceCard));
+  const actions = create('div', undefined, 'actions');
+  actions.append(link('去场景词库', 'scenes', 'button secondary'));
+  actions.append(button('复制到 ChatGPT 润色', copyPrompt));
+  root.append(actions);
+}
+
+async function machineTranslate(text) {
+  if (new TextEncoder().encode(text).length > 500) throw new Error('单句超过免费接口的 500 字节限制，可手动补全译文。');
+  const url = new URL('https://api.mymemory.translated.net/get');
+  url.search = new URLSearchParams({ q: text, langpair: 'zh-CN|de' });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(url, { signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer' });
+    if (response.status === 429) throw new Error('在线翻译免费额度已用完。');
+    if (!response.ok) throw new Error('在线翻译暂时不可用。');
+    const body = await response.json();
+    if (+body.responseStatus === 429 || body.quotaFinished) throw new Error('在线翻译免费额度已用完。');
+    const translated = body.responseData?.translatedText;
+    if (+body.responseStatus !== 200 || typeof translated !== 'string' || !translated.trim()) {
+      throw new Error('在线服务没有返回可用译文。');
+    }
+    const entities = { amp:'&', quot:'"', apos:"'", lt:'<', gt:'>', nbsp:' ' };
+    return translated.replace(/&(amp|quot|apos|lt|gt|nbsp|#39);/g, (_, entity) => entities[entity] || "'").trim();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+$('translate').addEventListener('click', async () => {
+  const record = getRecord();
+  if (!record || translations.get(record.id)?.busy) return;
+  const pending = record.sentences.filter(sentence => !sentence.de);
+  if (!pending.length) return;
+  const run = { busy: true, message: '正在翻译…', error: false };
+  translations.set(record.id, run);
+  translationOptions(record);
+  let done = 0;
+  let error = '';
+  for (const sentence of pending) {
+    if (!state.records.includes(record)) break;
+    if (sentence.de) continue;
+    try {
+      const translated = await machineTranslate(sentence.zh);
+      if (!sentence.de && state.records.includes(record)) {
+        sentence.de = translated;
+        sentence.source = 'machine';
+        done++;
+        persist();
+      }
+    } catch (reason) {
+      error = reason.name === 'AbortError' || reason instanceof TypeError
+        ? '在线翻译暂时无法连接。' : reason.message;
+      if (!error.includes('500 字节')) break;
+    }
+  }
+  run.busy = false;
+  run.error = !!error;
+  run.message = (done ? '已补全 ' + done + ' 句。' : '') + (error ? ' ' + error : '');
+  if (/^#learn(?:\/|$)/.test(location.hash) && getRecord() === record) {
+    const editing = $('lesson').contains(document.activeElement) && document.activeElement.tagName === 'INPUT';
+    if (editing) {
+      const editor = document.activeElement;
+      editor.addEventListener('blur', () => {
+        if (/^#learn(?:\/|$)/.test(location.hash) && getRecord() === record) renderLesson();
+      }, { once: true });
+      translationOptions(record);
+    } else renderLesson();
+  }
+  if (!state.records.includes(record)) translations.delete(record.id);
+});
+
+async function copyPrompt() {
+  const record = getRecord();
+  if (!record) return;
+  const prompt = '请按原顺序把下列中文逐句转换成德国日常口语。每句给出自然德语、简短的中文语法说明和实用词汇，并按生活场景分类。\n\n'
+    + record.sentences.map((sentence, index) => (index + 1) + '. ' + sentence.zh).join('\n');
+  try {
+    await navigator.clipboard.writeText(prompt);
+    clearTimeout(copyStatusTimer);
+    announce('已复制学习提示词，可粘贴到 ChatGPT。');
+    copyStatusTimer = setTimeout(() => {
+      if ($('feedback').textContent === '已复制学习提示词，可粘贴到 ChatGPT。') announce('');
+    }, 6000);
+  } catch {
+    window.prompt('复制下面的学习提示词', prompt);
+  }
+}
+
+function termCard(item) {
+  const card = create('article', undefined, 'card stack');
+  const de = create('h2', item.de, 'de');
+  de.lang = 'de';
+  const actions = playback(() => item.de);
+  actions.append(favoriteButton(() => item).control);
+  card.append(de, create('p', item.zh, 'muted'), actions);
+  return card;
+}
+
+function renderScenes(id) {
+  const root = $('scene-content');
+  root.replaceChildren();
+  const terms = state.records.flatMap(record => record.sentences.flatMap(sentence => {
+    if (sentence.terms.length) return sentence.terms;
+    return sentence.de ? [{ zh: sentence.zh, de: sentence.de, scene: 'other' }] : [];
+  }));
+  const grouped = Object.fromEntries(Object.keys(scenes).map(key => [key, unique(terms.filter(item => item.scene === key), phraseKey)]));
+  if (Object.hasOwn(scenes, id)) {
+    $('scene-title').textContent = scenes[id].name;
+    $('scene-description').textContent = grouped[id].length + ' 条表达 · ' + scenes[id].examples;
+    const back = create('p', undefined, 'intro');
+    back.append(link('所有场景', 'scenes', 'button secondary'));
+    root.append(back);
+    if (!grouped[id].length) root.append(create('p', '这个场景还没有匹配到表达。试着录一句相关的中文。', 'card muted'));
+    root.append(...grouped[id].map(termCard));
+    return;
+  }
+  $('scene-title').textContent = '生活场景';
+  $('scene-description').textContent = '从记录里匹配关键词和常用短语，按场景练习。';
+  const grid = create('div', undefined, 'grid');
+  for (const [key, scene] of Object.entries(scenes)) {
+    const card = link('', 'scenes/' + key, 'category card');
+    card.append(create('strong', scene.name), create('span', grouped[key].length + ' 条表达', 'small muted'));
+    grid.append(card);
+  }
+  root.append(grid);
+}
+
+function renderReview() {
+  const favorites = $('favorites');
+  favorites.replaceChildren(...state.favorites.map(termCard));
+  if (!state.favorites.length) favorites.append(create('p', '收藏的句子和短语会出现在这里。', 'card muted'));
+  const history = $('history');
+  history.replaceChildren();
+  if (!state.records.length) {
+    history.append(create('p', '还没有记录。', 'muted'));
+    return;
+  }
+  const list = create('ul', undefined, 'history');
+  for (const record of state.records.slice().reverse()) {
+    const row = create('li');
+    const title = record.text.length > 52 ? record.text.slice(0, 52) + '…' : record.text;
+    const entry = link(title, 'learn/' + record.id);
+    entry.append(create('div', new Date(record.at).toLocaleString('zh-CN'), 'small muted'));
+    const remove = button('删除', () => {
+      if (!window.confirm('删除这条历史记录？')) return;
+      state.records = state.records.filter(item => item !== record);
+      if (state.active === record.id) state.active = state.records.at(-1)?.id || null;
+      if (!translations.get(record.id)?.busy) translations.delete(record.id);
+      if (persist()) announce('历史记录已删除。');
+      renderReview();
+      $('history').querySelector('a')?.focus();
+    });
+    remove.setAttribute('aria-label', '删除记录：' + title);
+    row.append(entry, remove);
+    list.append(row);
+  }
+  history.append(list);
+}
+
+function route(focus) {
+  const [target, id] = location.hash.slice(1).split('/');
+  const page = ['home', 'learn', 'scenes', 'review'].includes(target) ? target : 'home';
+  if (page !== 'home') stopRecording();
+  announce('');
+  for (const section of document.querySelectorAll('[data-page]')) section.hidden = section.id !== page;
+  for (const item of document.querySelectorAll('[data-nav]')) {
+    if (item.dataset.nav === page) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  }
+  if (page === 'learn') {
+    const record = state.records.find(item => item.id === id);
+    if (record) {
+      state.active = record.id;
+      persist();
+    }
+    renderLesson();
+  } else if (page === 'scenes') renderScenes(id);
+  else if (page === 'review') renderReview();
+  if (focus) {
+    $(page).querySelector('h1').focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+}
+window.addEventListener('hashchange', () => route(true));
+route(false);
+</script>
+</body>
+</html>
